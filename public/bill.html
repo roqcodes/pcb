@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Billing App">
+    <title>Billing App</title>
+    <!-- Include Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+<style>
+    body {
+    background: linear-gradient(145deg, #f0f4f8, #e0e8ed);
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header Styling */
+header {
+    background-color: #004080;
+    color: #ffffff;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.8em;
+    box-shadow: 0px 4px 10px rgba(0, 64, 128, 0.2);
+}
+
+/* Button Section Styling */
+.button-section {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.button-section button {
+    background: linear-gradient(145deg, #0066cc, #004c99);
+    color: #ffffff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    box-shadow: 0px 4px 12px rgba(0, 102, 204, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.button-section button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 14px rgba(0, 102, 204, 0.4);
+}
+
+/* Table Styling */
+.billing-table-section {
+    margin: 20px auto;
+    width: 85%;
+    max-width: 1200px;
+}
+
+#billingTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+#billingTable th {
+    background-color: #004080;
+    color: #ffffff;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+#billingTable td {
+    padding: 12px;
+    text-align: left;
+}
+
+#billingTable tr:nth-child(even) {
+    background-color: #f0f8ff;
+}
+
+#billingTable tr:nth-child(odd) {
+    background-color: #e6f0f7;
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.85);
+    padding: 20px;
+    border-radius: 15px;
+    width: 300px;
+    max-width: 90%;
+    position: relative;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Form Button in Modal */
+.modal button {
+    background: linear-gradient(145deg, #007bff, #0056b3);
+    color: #ffffff;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 1em;
+    margin-top: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 123, 255, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 14px rgba(0, 123, 255, 0.4);
+}
+
+/* Footer Styling */
+footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.9em;
+    margin-top: 30px;
+}
+
+.patient-info {
+    background: rgba(255, 255, 255, 0.1); /* Adjust for glass effect */
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1.1rem;
+    color: #000000;
+    margin-bottom: 15px;
+}
+.patient-info span {
+    margin-right: 20px;
+}
+
+#printButton {
+    background: linear-gradient(145deg, #00be49, #00ffb7);
+    color: #ffffff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    font-size: 1em;
+    box-shadow: 0px 4px 12px rgba(0, 102, 204, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+#printButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 6px 14px rgba(0, 102, 204, 0.4);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    header {
+        font-size: 1.5em;
+        padding: 15px;
+    }
+
+    .button-section button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+
+    .billing-table-section {
+        width: 95%;
+    }
+
+    #billingTable th, #billingTable td {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .patient-info {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header {
+        font-size: 1.3em;
+        padding: 10px;
+    }
+
+    .button-section {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .button-section button {
+        padding: 8px 20px;
+        font-size: 0.85em;
+    }
+
+    #billingTable th, #billingTable td {
+        padding: 8px;
+        font-size: 0.8em;
+    }
+
+    .patient-info {
+        font-size: 0.9rem;
+    }
+
+    #printButton {
+        width: 100%;
+        padding: 8px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>Billing - PBC</h1>
+    </header>
+    
+    <!-- Button Navigation Section -->
+    <section class="button-section">
+        <button id="showDrugsBtn">Drugs</button>
+        <button id="showLabBtn">Lab</button>
+        <button id="showProcedureBtn">Procedure</button>
+        <button id="showConsultationBtn">Consultation</button>
+
+    </section>
+
+    <!-- Billing Table Section -->
+    <div id="content-to-print">
+    <section class="billing-table-section">
+        <div class="patient-info">
+    <span id="patientName">Name: </span>
+    <span id="patientAge">Age: </span>
+    <span id="patientDate">Date: </span>
+</div>
+        <table id="billingTable">
+            <thead>
+                <tr>
+                    <th>SL Number</th>
+                    <th>Prescription</th>
+                    <th>Quantity</th>
+                    <th>Rate per Tab</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be added dynamically -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4"><strong>Total Amount:</strong></td>
+                    <td id="totalAmount">0</td>
+                </tr>
+            </tfoot>
+        </table>
+    </section>
+    </div>
+<footer>
+    <button  id="printButton" onclick="printContent()">Print</button>
+</footer>
+    <!-- Drugs Modal Form -->
+    <div id="drugsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Select Drug</h2>
+            <form id="drugForm">
+                <label for="drugDropdown">Drugs:</label>
+                <select id="drugDropdown" required>
+                    <option value="">Select a Drug</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <!-- Quantity input (user adds quantity) -->
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" min="0" required>
+
+                <!-- Add to Table button -->
+                <button id="addToTableBtn" type="button">Add to Table</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lab Modal Form -->
+    <div id="labModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Select Lab Item</h2>
+            <form id="labForm">
+                <label for="labDropdown">Lab Items:</label>
+                <select id="labDropdown" required>
+                    <option value="">Select a Lab Item</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <!-- No quantity input for lab items, it's always 1 -->
+                <input type="hidden" id="labQuantity" value="1">
+
+                <!-- Add to Table button -->
+                <button id="addToLabTableBtn" type="button">Add to Table</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="procedureModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Select Procedure</h2>
+            <form id="procedureForm">
+                <label for="procedureDropdown">Procedures:</label>
+                <select id="procedureDropdown" required>
+                    <option value="">Select a Procedure</option>
+                    <!-- Options will be populated dynamically -->
+                </select>
+
+                <!-- No quantity input for procedures, it's always 1 -->
+                <input type="hidden" id="procedureQuantity" value="1">
+
+                <!-- Add to Table button -->
+                <button id="addToProcedureTableBtn" type="button">Add to Table</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Footer -->
+
+
+    <script>
+
+const name = localStorage.getItem("name");
+const age = localStorage.getItem("age");
+const date = localStorage.getItem("date");
+document.getElementById("patientName").innerText = `Name: ${name}`;
+document.getElementById("patientAge").innerText = `Age: ${age}`;
+document.getElementById("patientDate").innerText = `Date: ${date}`;
+
+        function closeModal() {
+            document.getElementById("drugsModal").style.display = "none";
+            document.getElementById("labModal").style.display = "none";
+            document.getElementById("procedureModal").style.display = "none";
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            // Firebase configuration object
+            const firebaseConfig = {
+                apiKey: "AIzaSyBfMZwEoraw3t2dUc7VMJEbbsbGo43dw-w",
+                authDomain: "geekforge-85da6.firebaseapp.com",
+                databaseURL: "https://geekforge-85da6-default-rtdb.firebaseio.com",
+                projectId: "geekforge-85da6",
+                storageBucket: "geekforge-85da6.firebasestorage.app",
+                messagingSenderId: "815042535710",
+                appId: "1:815042535710:web:ebfe3b3b80e8b39faf690f"
+            };
+
+            // Initialize Firebase
+            const app = firebase.initializeApp(firebaseConfig);
+            // Initialize Firebase Database
+            const db = firebase.database();
+
+            let selectedRate = 0;  // To store the rate per item
+            let selectedProcedureRate = 0;
+
+            // Show the Drugs modal when the Drugs button is clicked
+            function showDrugs() {
+                document.getElementById("drugsModal").style.display = "flex";
+                populateDrugsDropdown();
+            }
+
+            // Show the Lab modal when the Lab button is clicked
+            function showLab() {
+                document.getElementById("labModal").style.display = "flex";
+                populateLabDropdown();
+            }
+
+            function showProcedure() {
+                document.getElementById("procedureModal").style.display = "flex";
+                populateProcedureDropdown();
+            }
+
+            // Close the modal
+            // Unified closeModal function for all modals
+
+
+
+
+            // Fetch drug names and populate dropdown
+            function populateDrugsDropdown() {
+                const dropdown = document.getElementById("drugDropdown");
+                dropdown.innerHTML = '<option value="">Select a Drug</option>'; // Clear current options
+
+                db.ref("DRUGS").once("value")
+                    .then(snapshot => {
+                        snapshot.forEach(childSnapshot => {
+                            const drugName = childSnapshot.key;
+                            const option = document.createElement("option");
+                            option.value = drugName;
+                            option.textContent = drugName;
+                            dropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error retrieving drug names:", error);
+                    });
+            }
+
+            // Fetch lab item names and populate dropdown
+            function populateLabDropdown() {
+                const dropdown = document.getElementById("labDropdown");
+                dropdown.innerHTML = '<option value="">Select a Lab Item</option>'; // Clear current options
+
+                db.ref("LAB").once("value")
+                    .then(snapshot => {
+                        snapshot.forEach(childSnapshot => {
+                            const labName = childSnapshot.key;
+                            const option = document.createElement("option");
+                            option.value = labName;
+                            option.textContent = labName;
+                            dropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error retrieving lab items:", error);
+                    });
+            }
+
+
+            function populateProcedureDropdown() {
+                const dropdown = document.getElementById("procedureDropdown");
+                dropdown.innerHTML = '<option value="">Select a Procedure</option>'; // Clear current options
+
+                db.ref("PRO").once("value")
+                    .then(snapshot => {
+                        snapshot.forEach(childSnapshot => {
+                            const procedureName = childSnapshot.key;
+                            const option = document.createElement("option");
+                            option.value = procedureName;
+                            option.textContent = procedureName;
+                            dropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error("Error retrieving procedure names:", error);
+                    });
+            }
+
+
+            // Update Rate per Item when a drug is selected
+            async function updateDrugDetails() {
+                const drugName = document.getElementById("drugDropdown").value;
+
+                if (drugName) {
+                    db.ref("DRUGS/" + drugName).once("value")
+                        .then(snapshot => {
+                            const drugData = snapshot.val();
+                            if (drugData) {
+                                selectedRate = drugData.RPT || 0; // Get the rate per tab
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error retrieving drug details:", error);
+                        });
+                }
+            }
+
+            // Update Rate per Item when a lab item is selected
+            async function updateLabDetails() {
+                const labName = document.getElementById("labDropdown").value;
+
+                if (labName) {
+                    db.ref("LAB/" + labName).once("value")
+                        .then(snapshot => {
+                            const labData = snapshot.val();
+                            if (labData) {
+                                selectedRate = labData.RPT || 0; // Get the rate for lab item
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error retrieving lab details:", error);
+                        });
+                }
+            }
+
+            async function updateProcedureDetails() {
+                const procedureName = document.getElementById("procedureDropdown").value;
+
+                if (procedureName) {
+                    db.ref("PRO/" + procedureName).once("value")
+                        .then(snapshot => {
+                            const procedureData = snapshot.val();
+                            if (procedureData) {
+                                selectedProcedureRate = procedureData.RPT || 0; // Get the rate per procedure
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error retrieving procedure details:", error);
+                        });
+                }
+            }
+
+            // Add selected drug and quantity to the table
+            function addToTable() {
+                const drugName = document.getElementById("drugDropdown").value;
+                const quantity = document.getElementById("quantity").value;
+
+                if (!drugName || !quantity) {
+                    alert("Please select a drug and enter a quantity.");
+                    return;
+                }
+
+                const amount = selectedRate * quantity;  // Calculate the total amount (Rate * Quantity)
+
+                // Create a new row in the table
+                const table = document.getElementById("billingTable").getElementsByTagName('tbody')[0];
+                const row = table.insertRow();
+
+                // Add cells for SL number, Prescription, Quantity, Rate per tab, and Amount
+                const slCell = row.insertCell(0);
+                const prescriptionCell = row.insertCell(1);
+                const quantityCell = row.insertCell(2);
+                const rateCell = row.insertCell(3);
+                const amountCell = row.insertCell(4);
+
+                // Fill the row with values
+                const rowCount = table.rows.length;
+                slCell.textContent = rowCount;
+                prescriptionCell.textContent = drugName;
+                quantityCell.textContent = quantity;
+                rateCell.textContent = selectedRate;
+                amountCell.textContent = amount;
+
+
+
+                
+                function updateQuantity(drugName, quantity) {
+                    const drugRef = firebase.database().ref("DRUGS/" + drugName);
+
+                    drugRef.once('value').then((snapshot) => {
+                        const currentQuantity = snapshot.val().QUANTITY || 0;
+                        const newQuantity = currentQuantity - quantity;
+                        console.log(newQuantity);
+                        // Update the quantity in the database
+                        if (newQuantity >= 0) {
+                            drugRef.update({ QUANTITY: newQuantity });
+                        } else {
+                            alert("Insufficient stock!");
+                        }
+                    });
+                }
+
+
+                updateQuantity(drugName,quantity)
+                // Update the total amount at the bottom of the table
+                updateTotalAmount();
+
+                // Close the modal after adding to the table
+                closeModal();
+            }
+
+            // Add selected lab item to the table
+            function addToLabTable() {
+                const labName = document.getElementById("labDropdown").value;
+                const quantity = 1;  // Default quantity for lab items
+
+                if (!labName) {
+                    alert("Please select a lab item.");
+                    return;
+                }
+
+                const amount = selectedRate * quantity;
+
+                // Create a new row in the table
+                const table = document.getElementById("billingTable").getElementsByTagName('tbody')[0];
+                const row = table.insertRow();
+
+                // Add cells for SL number, Prescription, Quantity, Rate per tab, and Amount
+                const slCell = row.insertCell(0);
+                const prescriptionCell = row.insertCell(1);
+                const quantityCell = row.insertCell(2);
+                const rateCell = row.insertCell(3);
+                const amountCell = row.insertCell(4);
+
+                // Fill the row with values
+                const rowCount = table.rows.length;
+                slCell.textContent = rowCount;
+                prescriptionCell.textContent = labName;
+                quantityCell.textContent = quantity;
+                rateCell.textContent = selectedRate;
+                amountCell.textContent = amount;
+
+                // Update the total amount at the bottom of the table
+                updateTotalAmount();
+
+                // Close the modal after adding to the table
+                closeModal();
+            }
+
+
+            function addConsultationToTable() {
+                const consultationFee = "Consultation Fee";
+                const quantity = 1;  // Fixed quantity for consultation
+                const rate = 80;     // Fixed rate for consultation
+                const amount = rate * quantity;  // Calculate amount
+
+                // Create a new row in the table
+                const table = document.getElementById("billingTable").getElementsByTagName('tbody')[0];
+                const row = table.insertRow();
+
+                // Add cells for SL number, Prescription, Quantity, Rate per tab, and Amount
+                const slCell = row.insertCell(0);
+                const prescriptionCell = row.insertCell(1);
+                const quantityCell = row.insertCell(2);
+                const rateCell = row.insertCell(3);
+                const amountCell = row.insertCell(4);
+
+                // Fill the row with values
+                const rowCount = table.rows.length;
+                slCell.textContent = rowCount;
+                prescriptionCell.textContent = consultationFee;
+                quantityCell.textContent = quantity;
+                rateCell.textContent = rate;
+                amountCell.textContent = amount;
+
+                // Update the total amount at the bottom of the table
+                updateTotalAmount();
+            }
+
+            function addToProcedureTable() {
+                const procedureName = document.getElementById("procedureDropdown").value;
+                const quantity = 1;  // Default quantity for procedures
+
+                if (!procedureName) {
+                    alert("Please select a procedure.");
+                    return;
+                }
+
+                const amount = selectedProcedureRate * quantity;
+
+                // Create a new row in the table
+                const table = document.getElementById("billingTable").getElementsByTagName('tbody')[0];
+                const row = table.insertRow();
+
+                // Add cells for SL number, Prescription, Quantity, Rate per tab, and Amount
+                const slCell = row.insertCell(0);
+                const prescriptionCell = row.insertCell(1);
+                const quantityCell = row.insertCell(2);
+                const rateCell = row.insertCell(3);
+                const amountCell = row.insertCell(4);
+
+                // Fill the row with values
+                const rowCount = table.rows.length;
+                slCell.textContent = rowCount;
+                prescriptionCell.textContent = procedureName;
+                quantityCell.textContent = quantity;
+                rateCell.textContent = selectedProcedureRate;
+                amountCell.textContent = amount;
+
+                // Update the total amount at the bottom of the table
+                updateTotalAmount();
+
+                // Close the modal after adding to the table
+                closeModal();
+            }
+
+            // Close Procedure Modal
+            function closeModal() {
+                document.getElementById("procedureModal").style.display = "none";
+            }
+
+            // Calculate total amount
+            function updateTotalAmount() {
+                let totalAmount = 0;
+                const table = document.getElementById("billingTable").getElementsByTagName('tbody')[0];
+
+                for (let i = 0; i < table.rows.length; i++) {
+                    const amount = table.rows[i].cells[4].textContent;
+                    totalAmount += parseFloat(amount) || 0;
+                }
+
+                document.getElementById("totalAmount").textContent = "Total Amount: ₹" + totalAmount.toFixed(2);
+            }
+
+            // Event listeners for buttons
+            document.getElementById("showDrugsBtn").addEventListener("click", showDrugs);
+            document.getElementById("showLabBtn").addEventListener("click", showLab);
+            document.getElementById("drugDropdown").addEventListener("change", updateDrugDetails);
+            document.getElementById("labDropdown").addEventListener("change", updateLabDetails);
+            document.getElementById("addToTableBtn").addEventListener("click", addToTable);
+            document.getElementById("addToLabTableBtn").addEventListener("click", addToLabTable);
+            document.getElementById("showConsultationBtn").addEventListener("click", addConsultationToTable);
+            document.getElementById("showProcedureBtn").addEventListener("click", showProcedure);
+            document.getElementById("procedureDropdown").addEventListener("change", updateProcedureDetails);
+            document.getElementById("addToProcedureTableBtn").addEventListener("click", addToProcedureTable);
+
+
+            // Initialize the drug dropdown
+            populateDrugsDropdown();
+        });
+
+        async function printContent() {
+            var printContent = document.getElementById("content-to-print").innerHTML; // Get the content to print
+            var originalContent = document.body.innerHTML; // Store the original content of the page
+            var originalHead = document.head.innerHTML; // Store the original head content (styles, etc.)
+
+            // Temporarily set the document body to the content we want to print
+            document.body.innerHTML = printContent;
+            document.head.innerHTML = originalHead; // Restore the original head content
+
+            // Trigger the print dialog
+            window.print();
+
+            // Restore the original body content
+            document.body.innerHTML = originalContent;
+            window.location.reload();
+        }
+    </script>
+
+    
+
+</body>
+
+</html>

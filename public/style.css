@@ -1,0 +1,134 @@
+/* Reset styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+/* Container styling */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #ffffff, #ccedfa);
+}
+
+/* Header styling */
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #000000;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+header h2 {
+    font-size: 1.2rem;
+    color: #000000;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+/* Form styling */
+.container {
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(15px) brightness(1.1);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+}
+
+.glass-form label {
+    display: block;
+    margin-top: 15px;
+    color: #000000;
+    font-weight: bold;
+}
+
+.glass-form input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 5px;
+    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, 0.2);
+    color: #000000;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.glass-form input:focus {
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+}
+
+/* Button styling */
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background: #0078ff;
+    color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 120, 255, 0.4);
+    transition: background 0.3s, transform 0.2s;
+}
+
+.button:hover {
+    background: #005bb5;
+    transform: scale(1.05);
+}
+
+/* Alert message styling */
+.alert {
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #fff;
+    background: rgba(76, 175, 80, 0.8);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.alert.show {
+    display: block;
+    opacity: 1;
+}
+
+.alert.hidden {
+    display: none;
+}
+
+.glass-form div {
+    display: flex;
+    align-items: center; /* Align checkbox and label vertically */
+    margin-top: 15px;
+}
+
+.glass-form input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 20px; /* Increase checkbox width */
+    height: 20px; /* Increase checkbox height */
+}
+

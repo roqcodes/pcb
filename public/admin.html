@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Inventory Management</title>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfMZwEoraw3t2dUc7VMJEbbsbGo43dw-w",
+            authDomain: "geekforge-85da6.firebaseapp.com",
+            databaseURL: "https://geekforge-85da6-default-rtdb.firebaseio.com",
+            projectId: "geekforge-85da6",
+            storageBucket: "geekforge-85da6.appspot.com",
+            messagingSenderId: "815042535710",
+            appId: "1:815042535710:web:ebfe3b3b80e8b39faf690f"
+        };
+        let editData = null; // Initialize editData variable here to store data during editing
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        if (editData) {
+                document.getElementById('editItemName').value = editData.name;
+                document.getElementById('editQuantity').value = editData.quantity;
+                document.getElementById('editRPT').value = editData.rpt;
+                document.getElementById('editVendor').value = editData.vendor;
+                document.getElementById('saveEditButton').onclick = () => saveEdit(modalId, editData.key);
+
+            }
+        
+        
+        // Show and Hide Modals
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = "flex";
+                if (modalId === 'inventoryModal') loadDrugInventory();
+                else if (modalId === 'viewLabsModal') loadLabs();
+                else if (modalId === 'viewProceduresModal') loadProcedures();
+            } else {
+                console.error(`Error: Modal with ID '${modalId}' not found.`);
+            }
+        }
+    
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        // Load Drug Inventory
+        function loadDrugInventory() {
+            const drugTable = document.getElementById('drugInventoryTable');
+            while (drugTable.rows.length > 1) drugTable.deleteRow(1);
+
+            const drugsRef = database.ref('DRUGS');
+            drugsRef.once('value', (snapshot) => {
+                snapshot.forEach((drugSnapshot) => {
+                    const drugData = drugSnapshot.val();
+                    const row = drugTable.insertRow();
+                    row.insertCell(0).textContent = drugSnapshot.key;
+                    row.insertCell(1).textContent = drugData.QUANTITY || "No Quantity";
+                    row.insertCell(2).textContent = drugData.RPT || "No RPT";
+                    row.insertCell(3).textContent = drugData.VENDOR || "No Vendor";
+                    
+                    // Edit Button
+                    const editButton = document.createElement('button');
+                    editButton.textContent = "Edit";
+                    editButton.className = "btn";
+                    editButton.onclick = () => showModal('editDrugModal', {
+                        key: drugSnapshot.key,
+                        name: drugSnapshot.key,
+                        quantity: drugData.QUANTITY,
+                        rpt: drugData.RPT,
+                        vendor: drugData.VENDOR
+                    });
+                    row.insertCell(4).appendChild(editButton);
+                });
+            });
+        }
+
+        // Load Lab Inventory
+        function loadLabs() {
+            const labTable = document.getElementById('labInventoryTable');
+            while (labTable.rows.length > 1) labTable.deleteRow(1);
+
+            const labsRef = database.ref('LAB');
+            labsRef.once('value', (snapshot) => {
+                snapshot.forEach((labSnapshot) => {
+                    const labData = labSnapshot.val();
+                    const row = labTable.insertRow();
+                    row.insertCell(0).textContent = labSnapshot.key;
+                    row.insertCell(1).textContent = labData.RPT || "No RPT";
+                    
+                    // Edit Button
+                    const editButton = document.createElement('button');
+                    editButton.textContent = "Edit";
+                    editButton.className = "btn";
+                    editButton.onclick = () => editLab(labSnapshot.key);
+                    row.insertCell(2).appendChild(editButton);
+                });
+            });
+        }
+
+        // Load Procedure Inventory
+        function loadProcedures() {
+            const procedureTable = document.getElementById('procedureInventoryTable');
+            while (procedureTable.rows.length > 1) procedureTable.deleteRow(1);
+
+            const proceduresRef = database.ref('PRO');
+            proceduresRef.once('value', (snapshot) => {
+                snapshot.forEach((procedureSnapshot) => {
+                    const procedureData = procedureSnapshot.val();
+                    const row = procedureTable.insertRow();
+                    row.insertCell(0).textContent = procedureSnapshot.key;
+                    row.insertCell(1).textContent = procedureData.RPT || "No RPT";
+                    
+                    // Edit Button
+                    const editButton = document.createElement('button');
+                    editButton.textContent = "Edit";
+                    editButton.className = "btn";
+                    editButton.onclick = () => editProcedure(procedureSnapshot.key);
+                    row.insertCell(2).appendChild(editButton);
+                });
+            });
+        }
+
+        // Placeholder Edit Functions
+        function editDrug(drugName) {
+            alert(`Edit Drug: ${drugName}`);
+        }
+
+        function editLab(labName) {
+            alert(`Edit Lab: ${labName}`);
+        }
+
+        function editProcedure(procedureName) {
+            alert(`Edit Procedure: ${procedureName}`);
+        }
+
+        // Add New Drug to Database
+function addDrug(event) {
+    event.preventDefault();
+    const drugName = document.getElementById('newDrugName').value;
+    const quantity = document.getElementById('newDrugQuantity').value;
+    const rpt = document.getElementById('newDrugRPT').value;
+    const vendor = document.getElementById('newDrugVendor').value;
+
+    database.ref('DRUGS/' + drugName).set({
+        QUANTITY: quantity,
+        RPT: rpt,
+        VENDOR: vendor
+    }).then(() => {
+        closeModal('addDrugModal');
+        loadDrugInventory();
+    });
+}
+
+// Add New Lab to Database
+function addLab(event) {
+    event.preventDefault();
+    const labName = document.getElementById('newLabName').value;
+    const rpt = document.getElementById('newLabRPT').value;
+
+    database.ref('LAB/' + labName).set({
+        RPT: rpt
+    }).then(() => {
+        closeModal('addLabModal');
+        loadLabs();
+    });
+}
+
+// Add New Procedure to Database
+function addProcedure(event) {
+    event.preventDefault();
+    const procedureName = document.getElementById('newProcedureName').value;
+    const rpt = document.getElementById('newProcedureRPT').value;
+
+    database.ref('PRO/' + procedureName).set({
+        RPT: rpt
+    }).then(() => {
+        closeModal('addProcedureModal');
+        loadProcedures();
+    });
+}
+function saveEdit(modalId, itemKey) {
+            const quantity = document.getElementById('editQuantity').value;
+            const rpt = document.getElementById('editRPT').value;
+            const vendor = document.getElementById('editVendor').value;
+
+            // Update Firebase with new values
+            const itemRef = database.ref(`DRUGS/${itemKey}`);
+            itemRef.update({
+                QUANTITY: quantity,
+                RPT: rpt,
+                VENDOR: vendor
+            }).then(() => {
+                closeModal(modalId);
+                loadDrugInventory();
+            }).catch((error) => {
+                console.error("Error updating item:", error);
+            });
+        }
+    </script>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f4f8;
+        }
+
+        header {
+            background-color: #004080;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.8em;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .btn {
+            background: #007bff;
+            color: #ffffff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            text-align: left;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.5em;
+            color: #004080;
+            border-bottom: 1px solid #e0e8ed;
+            padding-bottom: 10px;
+        }
+
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e0e8ed;
+        }
+
+        th {
+            background-color: #004080;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<header>Admin - Inventory Management</header>
+
+<div class="container">
+    <button class="btn" onclick="showModal('inventoryModal')">Drug Inventory</button>
+    <button class="btn" onclick="showModal('addDrugModal')">Add New Drug</button>
+    <button class="btn" onclick="showModal('addLabModal')">Add New Lab</button>
+    <button class="btn" onclick="showModal('addProcedureModal')">Add New Procedure</button>
+    <button class="btn" onclick="showModal('viewLabsModal')">View/Edit Labs</button>
+    <button class="btn" onclick="showModal('viewProceduresModal')">View/Edit Procedures</button>
+</div>
+
+<!-- Drug Inventory Modal -->
+<div id="inventoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            Drug Inventory
+            <span class="modal-close" onclick="closeModal('inventoryModal')">&times;</span>
+        </div>
+        <table id="drugInventoryTable">
+            <tr>
+                <th>Drug Name</th>
+                <th>Quantity</th>
+                <th>RPT</th>
+                <th>Vendor</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- Lab Inventory Modal -->
+<div id="viewLabsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            View/Edit Labs
+            <span class="modal-close" onclick="closeModal('viewLabsModal')">&times;</span>
+        </div>
+        <table id="labInventoryTable">
+            <tr>
+                <th>Lab Name</th>
+                <th>RPT</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<!-- Procedure Inventory Modal -->
+<div id="viewProceduresModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            View/Edit Procedures
+            <span class="modal-close" onclick="closeModal('viewProceduresModal')">&times;</span>
+        </div>
+        <table id="procedureInventoryTable">
+            <tr>
+                <th>Procedure Name</th>
+                <th>RPT</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+    </div>
+</div>
+<!-- Add New Drug Modal -->
+<div id="addDrugModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            Add New Drug
+            <span class="modal-close" onclick="closeModal('addDrugModal')">&times;</span>
+        </div>
+        <form onsubmit="addDrug(event)">
+            <label>Drug Name:</label>
+            <input type="text" id="newDrugName" required><br>
+            <label>Quantity:</label>
+            <input type="number" id="newDrugQuantity" required><br>
+            <label>RPT:</label>
+            <input type="number" id="newDrugRPT" required><br>
+            <label>Vendor:</label>
+            <input type="text" id="newDrugVendor" required><br>
+            <button type="submit" class="btn">Add Drug</button>
+        </form>
+    </div>
+</div>
+
+<!-- Add New Lab Modal -->
+<div id="addLabModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            Add New Lab
+            <span class="modal-close" onclick="closeModal('addLabModal')">&times;</span>
+        </div>
+        <form onsubmit="addLab(event)">
+            <label>Lab Name:</label>
+            <input type="text" id="newLabName" required><br>
+            <label>RPT:</label>
+            <input type="number" id="newLabRPT" required><br>
+            <button type="submit" class="btn">Add Lab</button>
+        </form>
+    </div>
+</div>
+
+<!-- Add New Procedure Modal -->
+<div id="addProcedureModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            Add New Procedure
+            <span class="modal-close" onclick="closeModal('addProcedureModal')">&times;</span>
+        </div>
+        <form onsubmit="addProcedure(event)">
+            <label>Procedure Name:</label>
+            <input type="text" id="newProcedureName" required><br>
+            <label>RPT:</label>
+            <input type="number" id="newProcedureRPT" required><br>
+            <button type="submit" class="btn">Add Procedure</button>
+        </form>
+    </div>
+</div>
+<div id="editDrugModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            Edit Drug
+            <span class="modal-close" onclick="closeModal('editDrugModal')">&times;</span>
+        </div>
+        <label>Drug Name:</label>
+        <input type="text" id="editItemName" disabled><br>
+        <label>Quantity:</label>
+        <input type="number" id="editQuantity"><br>
+        <label>RPT:</label>
+        <input type="number" id="editRPT"><br>
+        <label>Vendor:</label>
+        <input type="text" id="editVendor"><br>
+        <button id="saveEditButton" class="btn">Save</button>
+    </div>
+</div>
+</body>
+</html>
