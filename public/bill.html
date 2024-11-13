@@ -688,7 +688,6 @@ document.getElementById("patientDate").innerText = `Date: ${date}`;
             document.getElementById("addToProcedureTableBtn").addEventListener("click", addToProcedureTable);
 
 
-//populate drugdropdown            populateDrugsDropdown();
         });
 
         async function printContent() {
@@ -702,7 +701,7 @@ document.getElementById("patientDate").innerText = `Date: ${date}`;
             window.print();
 
             document.body.innerHTML = originalContent; //restore original content
-            // window.location.reload();
+            window.location.reload();
         }
     </script>
 
